@@ -60,6 +60,7 @@ class PredictionRequest(BaseModel):
     current_price: float
     distant_market_price: float
     transport_cost: float
+    language: str = "Tanglish"
 
 @app.get("/health")
 async def health_check():
@@ -116,9 +117,9 @@ async def predict(request: PredictionRequest):
         f"The profit improvement if transported is {profit_improvement:.2f}. "
         f"The forecasted AQI is {forecasted_aqi:.2f}. "
         f"Based on this, the recommended action is: {recommended_action}. "
-        f"Generate exactly 2 sentences of advice in Phonetic Code-Switched Tamil "
-        f"(English letters, mixing Tamil and English words naturally), explicitly mentioning "
-        f"the recommended action, transport cost, and profit improvement."
+        f"Generate exactly 2 sentences of advice explicitly mentioning "
+        f"the recommended action, transport cost, and profit improvement. "
+        f"Write this advisory strictly in {request.language}."
     )
 
     try:
