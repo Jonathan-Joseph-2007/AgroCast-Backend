@@ -8,8 +8,21 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from gtts import gTTS
 import tempfile
+import time
+import re
 
 st.set_page_config(page_title="AgroCast Voice Assistant", layout="centered")
+
+LANG_CODES = {'Tamil': 'ta', 'Hindi': 'hi', 'Malayalam': 'ml', 'Telugu': 'te'}
+
+def clean_text_for_speech(text):
+    # Replace newlines and tabs
+    text = text.replace('\n', ' ').replace('\t', ' ')
+    # Explicitly remove JSON-style keys that might have leaked into the advisory
+    text = re.sub(r'(?i)\b(advisory|yield|crop|current_price|distant_market_price|transport_cost)\b\s*:', '', text)
+    # Remove all symbols except basic sentence-ending periods (Unicode-aware)
+    text = re.sub(r'[^\w\s.]', '', text)
+    return text
 
 @st.cache_resource
 def get_openai_client():
@@ -58,7 +71,7 @@ if audio_bytes:
         with st.spinner('Processing...'):
             system_prompt = (
                 f"You are a Strict Data Extractor. Analyze the user's voice text and output ONLY a JSON.\n\n"
-                f"The user has selected {st.session_state.target_lang}. Translate the extracted data and the final response strictly into this language script.\n\n"
+                f"The user has selected {st.session_state.target_lang}. You MUST output the \"advisory\" text strictly using the {st.session_state.target_lang} script. Do not use English or Tanglish.\n\n"
                 "Identify the intent:\n"
                 "- If the user asks about price, intent = 'price_check'.\n"
                 "- If they ask about weather/climate, intent = 'climate_check'.\n"
@@ -86,10 +99,6 @@ if audio_bytes:
                 
             payload = json.loads(extraction_str)
             
-            # Add required coordinates
-            payload["lat"] = 11.0168
-            payload["lon"] = 76.9558
-            
             # Send payload to backend
             API_URL = "https://agrocast-backend.onrender.com/predict"
             api_response = requests.post(API_URL, json=payload)
@@ -106,17 +115,15 @@ if audio_bytes:
                     st.json(payload)
                     st.write("**Raw profit_improvement from PKL model:**", data.get("forecasts", {}).get("profit_improvement"))
                 
-                # Language Mapping for gTTS
-                lang_map = {'Hindi': 'hi', 'Tamil': 'ta', 'Telugu': 'te', 'Malayalam': 'ml', 'Kannada': 'kn', 'English': 'en', 'Tanglish': 'ta'}
-                extracted_lang = payload.get("language", st.session_state.target_lang)
-                lang_code = lang_map.get(extracted_lang, 'en')
-                
                 # Generate Audio via gTTS
-                tts = gTTS(text=advisory_text, lang=lang_code)
+                lang_code = LANG_CODES.get(st.session_state.target_lang, 'hi')
+                cleaned_advisory = clean_text_for_speech(advisory_text)
+                tts = gTTS(text=cleaned_advisory, lang=lang_code)
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
                 tts.save(temp_file.name)
                 
                 # Playback
+                time.sleep(1)
                 st.audio(temp_file.name, format="audio/mp3", autoplay=True)
                 
             else:

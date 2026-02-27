@@ -53,8 +53,6 @@ except FileNotFoundError as e:
     price_model = None
 
 class PredictionRequest(BaseModel):
-    lat: float
-    lon: float
     crop: str
     yield_amount: float
     current_price: float
@@ -74,9 +72,10 @@ async def predict(request: PredictionRequest):
     Main prediction pipeline: Fetch data, forecast AQI, predict price, 
     generate text advisory, and synthesize speech audio.
     """
-    # 1. Fetch Live Data
-    weather_data = get_live_weather(request.lat, request.lon)
-    aqi_data = get_live_aqi(request.lat, request.lon)
+    # 1. Fetch Live Data (using default Coimbatore coordinates)
+    lat, lon = 11.0168, 76.9558
+    weather_data = get_live_weather(lat, lon)
+    aqi_data = get_live_aqi(lat, lon)
     
     current_temp = weather_data.get("temperature_celsius") or 25.0
     current_humidity = weather_data.get("relative_humidity_percent") or 50.0
@@ -112,24 +111,21 @@ async def predict(request: PredictionRequest):
     # 3. Explainability Layer (Featherless AI)
     if request.intent == "price_check":
         prompt = (
-            f"Act as an agricultural expert. A farmer is growing {request.crop} at coordinates "
-            f"({request.lat}, {request.lon}). "
+            f"Act as an agricultural expert. A farmer is growing {request.crop}. "
             f"The local market price is {request.current_price}. "
             f"Generate an advisory focusing ONLY on the current market price. "
             f"You must write this entire advisory strictly in the {request.language} language."
         )
     elif request.intent == "climate_check":
         prompt = (
-            f"Act as an agricultural expert. A farmer is growing {request.crop} at coordinates "
-            f"({request.lat}, {request.lon}). "
+            f"Act as an agricultural expert. A farmer is growing {request.crop}. "
             f"The current temperature is {current_temp}°C with an AQI of {aqi_data.get('aqi')}. "
             f"Generate an advisory focusing ONLY on the live weather data like Temperature and AQI. "
             f"You must write this entire advisory strictly in the {request.language} language."
         )
     else:
         prompt = (
-            f"Act as an agricultural expert. A farmer is growing {request.crop} at coordinates "
-            f"({request.lat}, {request.lon}) with an expected yield of {request.yield_amount}. "
+            f"Act as an agricultural expert. A farmer is growing {request.crop} with an expected yield of {request.yield_amount}. "
             f"The local market price is {request.current_price}, yielding a local revenue of {local_revenue:.2f}. "
             f"The distant market price is {request.distant_market_price} with a transport cost of {request.transport_cost:.2f}, "
             f"yielding a distant profit of {distant_profit:.2f}. "
@@ -182,8 +178,6 @@ async def predict(request: PredictionRequest):
     return {
         "input_data": {
             "crop": request.crop,
-            "lat": request.lat,
-            "lon": request.lon,
             "current_price": request.current_price
         },
         "live_climate": {
