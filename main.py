@@ -27,11 +27,11 @@ os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Variables and Clients
-FEATHERLESS_API_KEY = "rc_d7a7f198b3332099a6f2188efba6deffc5ca49c31546802a75068b80cf9bcad6"
+FEATHERLESS_API_KEY = os.getenv("FEATHERLESS_API_KEY")
 FEATHERLESS_API_URL = "https://api.featherless.ai/v1"
 FEATHERLESS_MODEL = "deepseek-ai/DeepSeek-V3-0324" 
 
-ELEVENLABS_API_KEY = "sk_467f4eb142b2bc8893dc90d22ecd90ceac2a9fb37a61a67e"
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 featherless_client = AsyncOpenAI(
     api_key=FEATHERLESS_API_KEY,
