@@ -3,6 +3,7 @@ import uuid
 import joblib
 import random
 import numpy as np
+import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -170,16 +171,23 @@ async def predict(request: PredictionRequest):
             f"- Strict Completion: Ensure every sentence ends cleanly with a full stop/period. Do not leave hanging sentences."
         )
 
-    try:
-        response = await featherless_client.chat.completions.create(
-            model=FEATHERLESS_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=150
-        )
-        advisory_text = response.choices[0].message.content.strip()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Featherless AI API error: {str(e)}")
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = await featherless_client.chat.completions.create(
+                model=FEATHERLESS_MODEL,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+                max_tokens=150
+            )
+            advisory_text = response.choices[0].message.content.strip()
+            break
+        except Exception as e:
+            if "429" in str(e) or "concurrency" in str(e).lower():
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 * (attempt + 1))
+                    continue
+            raise HTTPException(status_code=500, detail=f"Featherless AI API error: {str(e)}")
 
     # 4. Accessibility Layer (ElevenLabs)
     # Generate MP3 using eleven_multilingual_v2

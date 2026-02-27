@@ -101,6 +101,7 @@ if audio_bytes:
             
             # Send payload to backend
             API_URL = "https://agrocast-backend.onrender.com/predict"
+            time.sleep(2.5)  # Wait for the Featherless AI concurrency limit to safely clear
             api_response = requests.post(API_URL, json=payload)
             
             if api_response.status_code == 200:
