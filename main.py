@@ -96,6 +96,7 @@ async def predict(request: PredictionRequest):
     price_inputs = np.array([[forecasted_aqi, request.current_price]])
     predicted_price = float(price_model.predict(price_inputs)[0])
     predicted_price = max(request.current_price * 0.5, predicted_price)
+    print(f"Prediction made using PKL model: {predicted_price}")
     
     # Advanced Profit Comparison
     local_revenue = request.current_price * request.yield_amount
