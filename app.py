@@ -59,13 +59,18 @@ div[data-baseweb="notification"] p {
 LANG_CODES = {'Tamil': 'ta', 'Hindi': 'hi', 'Malayalam': 'ml', 'Telugu': 'te'}
 
 def clean_text_for_speech(text):
-    # Replace newlines and tabs
-    text = text.replace('\n', ' ').replace('\t', ' ')
-    # Explicitly remove JSON-style keys that might have leaked into the advisory
-    text = re.sub(r'(?i)\b(advisory|yield|crop|current_price|distant_market_price|transport_cost)\b\s*:', '', text)
-    # Remove all symbols except basic sentence-ending periods (Unicode-aware)
-    text = re.sub(r'[^\w\s.]', '', text)
-    return text
+    # 1. First, replace technical symbols with actual words so they make sense aloud
+    text = text.replace('₹', 'Rupees').replace('/kg', 'per kilogram')
+    text = text.replace('Rs.', 'Rupees').replace('Rs', 'Rupees')
+    
+    # 2. DELETE only specific unwanted symbols like ( ) [ ] : _ *
+    # We use a 'negated set' that PRESERVES letters, numbers, spaces, and ALL Indian scripts
+    # Pattern: [^\w\s\.\u0900-\u097F\u0B80-\u0BFF\u0C00-\u0C7F\u0D00-\u0D7F]
+    clean_pattern = r'[^\w\s\.\u0900-\u097F\u0B80-\u0BFF\u0C00-\u0C7F\u0D00-\u0D7F]'
+    text = re.sub(clean_pattern, ' ', text)
+    
+    # 3. Clean up extra spaces so gTTS doesn't pause too long
+    return re.sub(r'\s+', ' ', text).strip()
 
 @st.cache_resource
 def get_openai_client():
@@ -113,15 +118,60 @@ if audio_bytes:
         st.info(f"**You said:** {user_text}")
         
         with st.spinner('Processing...'):
+            # --- 1. INTENT GUARDRAIL (THE JUDGE) ---
+            weather_keywords = ['mausam', 'weather', 'aqi', 'climate', 'temperature', 'humidity', 'rain', 'monsoon']
+            is_weather = any(wk in user_text.lower() for wk in weather_keywords)
+            
+            if is_weather:
+                judge_decision = "YES"
+            else:
+                judge_prompt = (
+                    "You are an expert in Indian Agriculture. The user is asking about crops using regional names "
+                    "(like Aalu for Potato, Vengayam for Onion). If the text mentions ANY vegetable, fruit, grain, "
+                    "or market price in any Indian language, answer 'YES'. Text: " + user_text
+                )
+                judge_res = client.chat.completions.create(
+                    model="deepseek-ai/DeepSeek-V3-0324",
+                    messages=[{"role": "user", "content": judge_prompt}],
+                    temperature=0
+                )
+                judge_decision = judge_res.choices[0].message.content.strip().upper()
+                
+            if "YES" not in judge_decision:
+                rejection_messages = {
+                    'Tamil': 'மன்னிக்கவும், இது விவசாயம் தொடர்பான கேள்வி அல்ல. தயவுசெய்து பயிர்கள் அல்லது விலைகள் பற்றி கேட்கவும்.',
+                    'Hindi': 'क्षमा करें, यह कृषि से संबंधित प्रश्न नहीं है। कृपया फसलों या कीमतों के बारे में पूछें।',
+                    'Telugu': 'క్షమించండి, ఇది వ్యవసాయానికి సంబంధించిన ప్రశ్న కాదు. దయచేసి పంటలు లేదా ధరల గురించి అడగండి.',
+                    'Malayalam': 'ക്ഷമിക്കണം, ഇത് കൃഷിയുമായി ബന്ധപ്പെട്ട ചോദ്യമല്ല. ദയവായി വിളകളെക്കുറിച്ചോ വിലകളെക്കുറിച്ചോ ചോദിക്കുക.',
+                    'English': 'I can only assist with agricultural questions.'
+                }
+                advisory_text = rejection_messages.get(st.session_state.target_lang, "I can only assist with agricultural questions.")
+                st.warning(advisory_text)
+                
+                lang_codes = {'Hindi': 'hi', 'Tamil': 'ta', 'Malayalam': 'ml', 'Telugu': 'te', 'English': 'en'}
+                current_code = lang_codes.get(st.session_state.target_lang, 'en')
+                clean_text = clean_text_for_speech(advisory_text)
+                tts = gTTS(text=clean_text, lang=current_code, slow=False)
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
+                tts.save(temp_file.name)
+                time.sleep(1)
+                st.audio(temp_file.name, format="audio/mp3", autoplay=True)
+                st.stop()
+                
+            # --- 2. DATA EXTRACTION ---
             system_prompt = (
                 f"You are a Strict Data Extractor. Analyze the user's voice text and output ONLY a JSON.\n\n"
-                f"The user has selected {st.session_state.target_lang}. You MUST output the \"advisory\" text strictly using the {st.session_state.target_lang} script. Do not use English or Tanglish.\n\n"
+                f"You are a strict native agricultural translator. The user has selected {st.session_state.target_lang}.\n"
+                f"CRITICAL RULES FOR THE \"advisory\" FIELD:\n"
+                f"- It MUST be written 100% in the native {st.session_state.target_lang} script.\n"
+                f"- ABSOLUTELY NO English letters (A-Z, a-z) are allowed in the advisory text.\n"
+                f"- Translate all technical terms (Profit, Yield, AQI, Weather, Market) into pure {st.session_state.target_lang}.\n"
+                f"- Do not use transliterated English (e.g., do not write 'profit' in Malayalam script; use the actual Malayalam word for profit).\n\n"
                 "Identify the intent:\n"
-                "- If the user asks about politics, movies, or anything NOT related to farming, crops, weather, or market prices, strictly set the intent to 'off_topic'.\n"
                 "- If the user asks about price, intent = 'price_check'.\n"
                 "- If they ask about weather/climate, intent = 'climate_check'.\n"
                 "- If they ask about selling/market, intent = 'full_advice'.\n\n"
-                "Extract the crop and any numbers mentioned.\n\n"
+                "Extract the crop and any numbers mentioned. If the user mentions a regional name like \"Aalu\", map it to its English equivalent \"Potato\" before sending it to the backend ML models.\n\n"
                 "Validation: Ensure the AI always outputs numbers. If a user asks for 'Price' but doesn't mention a crop, look at the previous context or default to 'Tomato'. If it can't find a number in the speech, it must use these defaults: "
                 "yield_amount: 2500, current_price: 40, distant_market_price: 55.\n\n"
                 "Output JSON keys: intent, language, crop, yield_amount, current_price, distant_market_price."
@@ -144,59 +194,38 @@ if audio_bytes:
                 
             payload = json.loads(extraction_str)
             
-            if payload.get("intent") == "off_topic":
-                rejection_messages = {
-                    'Tamil': 'மன்னிக்கவும், நான் விவசாய கேள்விகளுக்கு மட்டுமே பதிலளிக்க முடியும்.',
-                    'Hindi': 'क्षमा करें, मैं केवल कृषि संबंधी प्रश्नों में सहायता कर सकता हूँ।',
-                    'Malayalam': 'ക്ഷമിക്കണം, എനിക്ക് കാർഷിക ചോദ്യങ്ങളെ മാത്രമേ സഹായിക്കാൻ കഴിയൂ.',
-                    'Telugu': 'క్షమించండి, నేను వ్యవసాయ ప్రశ్నలకు మాత్రమే సహాయం చేయగలను.',
-                    'English': 'I can only assist with agricultural questions.'
-                }
-                advisory_text = rejection_messages.get(st.session_state.target_lang, "I can only assist with agricultural questions.")
-                st.warning(advisory_text)
+            # --- 3. BACKEND API CALL ---
+            API_URL = "https://agrocast-backend.onrender.com/predict"
+            time.sleep(2.5)  # Wait for the Featherless AI concurrency limit to safely clear
+            api_response = requests.post(API_URL, json=payload)
+            
+            if api_response.status_code == 200:
+                data = api_response.json()
                 
+                # Display output
+                advisory_text = data.get("advisory", "No advice generated.")
+                st.success(advisory_text)
+                
+            # with st.expander("Technical Logs (Model Verification)"):
+            #     st.write("**Payload sent to Backend:**")
+            #     st.json(payload)
+            #     st.write("**Raw profit_improvement from PKL model:**", data.get("forecasts", {}).get("profit_improvement"))
+                
+                # Generate Audio via gTTS
+                cleaned_advisory = clean_text_for_speech(advisory_text)
                 lang_codes = {'Hindi': 'hi', 'Tamil': 'ta', 'Malayalam': 'ml', 'Telugu': 'te', 'English': 'en'}
                 current_code = lang_codes.get(st.session_state.target_lang, 'en')
-                clean_text = advisory_text.replace('*', '').replace('#', '')
+                clean_text = cleaned_advisory.replace('*', '').replace('#', '')
                 tts = gTTS(text=clean_text, lang=current_code, slow=False)
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
                 tts.save(temp_file.name)
+                
+                # Playback
                 time.sleep(1)
                 st.audio(temp_file.name, format="audio/mp3", autoplay=True)
                 
             else:
-                # Send payload to backend
-                API_URL = "https://agrocast-backend.onrender.com/predict"
-                time.sleep(2.5)  # Wait for the Featherless AI concurrency limit to safely clear
-                api_response = requests.post(API_URL, json=payload)
-                
-                if api_response.status_code == 200:
-                    data = api_response.json()
-                    
-                    # Display output
-                    advisory_text = data.get("advisory", "No advice generated.")
-                    st.success(advisory_text)
-                    
-                    with st.expander("Technical Logs (Model Verification)"):
-                        st.write("**Payload sent to Backend:**")
-                        st.json(payload)
-                        st.write("**Raw profit_improvement from PKL model:**", data.get("forecasts", {}).get("profit_improvement"))
-                    
-                    # Generate Audio via gTTS
-                    cleaned_advisory = clean_text_for_speech(advisory_text)
-                    lang_codes = {'Hindi': 'hi', 'Tamil': 'ta', 'Malayalam': 'ml', 'Telugu': 'te', 'English': 'en'}
-                    current_code = lang_codes.get(st.session_state.target_lang, 'en')
-                    clean_text = cleaned_advisory.replace('*', '').replace('#', '')
-                    tts = gTTS(text=clean_text, lang=current_code, slow=False)
-                    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
-                    tts.save(temp_file.name)
-                    
-                    # Playback
-                    time.sleep(1)
-                    st.audio(temp_file.name, format="audio/mp3", autoplay=True)
-                    
-                else:
-                    st.error(f"Backend Error: {api_response.status_code} - {api_response.text}")
+                st.error(f"Backend Error: {api_response.status_code} - {api_response.text}")
 
     except sr.UnknownValueError:
         st.error("Speech Recognition could not understand the audio.")
