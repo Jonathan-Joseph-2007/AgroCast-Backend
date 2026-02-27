@@ -49,9 +49,15 @@ def clean_text(text):
     clean_pattern = r'[^\w\s\.\u0900-\u097F\u0B80-\u0BFF\u0C00-\u0C7F\u0D00-\u0D7F]'
     return re.sub(clean_pattern, ' ', text).strip()
 
+@app_voice.get("/health")
+async def health_check():
+    """Simple health check to verify local deployment is working before Ngrok."""
+    return {"status": "ready", "service": "Twilio Voice IVR Microservice"}
+
 @app_voice.post("/voice/incoming")
 async def voice_incoming(request: Request):
     """Initial Twilio Webhook parsing digits for language"""
+    print("\n[IVR LOG] 📞 Incoming Call Detected!")
     response = VoiceResponse()
     
     gather = Gather(num_digits=1, action="/voice/ask", timeout=5)
@@ -111,7 +117,8 @@ async def voice_process(request: Request, SpeechResult: str = Form(None), lang: 
         response.hangup()
         return HTMLResponse(content=str(response), media_type="application/xml")
         
-    print(f"[IVR RECEIVED] Caller said: {SpeechResult} (Target: {lang})")
+    print(f"\n[IVR LOG] 🎙️ Speech Transcription Received: '{SpeechResult}'")
+    print(f"[IVR LOG] 🌐 Target Dialect: {lang}")
     
     # Step 1: Data Extraction System mapped from the frontend logic
     system_prompt = (
@@ -163,6 +170,7 @@ async def voice_process(request: Request, SpeechResult: str = Form(None), lang: 
             main_response = await predict(req)
             advisory_text = main_response["advisory"]
             final_lang = lang
+            print(f"[IVR LOG] 🧠 ML Advisory Generated: {advisory_text}")
             
         # Step 4: Stream Audio Back
         clean_adv = clean_text(advisory_text)
