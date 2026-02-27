@@ -1,6 +1,7 @@
 import os
 import uuid
 import joblib
+import random
 import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -80,6 +81,20 @@ async def predict(request: PredictionRequest):
     current_temp = weather_data.get("temperature_celsius") or 25.0
     current_humidity = weather_data.get("relative_humidity_percent") or 50.0
     current_precip = weather_data.get("precipitation_mm") or 0.0
+
+    # 1.5 Dynamic Price Logic
+    BASE_PRICES = {'tomato': 40, 'potato': 45, 'onion': 28, 'brinjal': 35, 'chilli': 60}
+    crop_lower = request.crop.lower()
+    
+    if crop_lower in BASE_PRICES:
+        base = BASE_PRICES[crop_lower]
+        variance = random.uniform(-2.0, 2.0)
+        request.current_price = round(base + variance, 2)
+        request.distant_market_price = round(request.current_price * 1.35, 2) # ensure distant price logic still holds
+    else:
+        # Default fallback mechanism if crop not in dictionary
+        request.current_price = request.current_price
+        request.distant_market_price = request.distant_market_price
 
     # 2. Model Inference Layer
     if environmental_model is None or price_model is None:
