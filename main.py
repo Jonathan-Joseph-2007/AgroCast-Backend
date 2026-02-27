@@ -61,6 +61,7 @@ class PredictionRequest(BaseModel):
     distant_market_price: float
     transport_cost: float
     language: str = "Tanglish"
+    intent: str = "full_advice"
 
 @app.get("/health")
 async def health_check():
@@ -108,19 +109,36 @@ async def predict(request: PredictionRequest):
         recommended_action = "Sell Locally"
 
     # 3. Explainability Layer (Featherless AI)
-    prompt = (
-        f"Act as an agricultural expert. A farmer is growing {request.crop} at coordinates "
-        f"({request.lat}, {request.lon}) with an expected yield of {request.yield_amount}. "
-        f"The local market price is {request.current_price}, yielding a local revenue of {local_revenue:.2f}. "
-        f"The distant market price is {request.distant_market_price} with a transport cost of {request.transport_cost:.2f}, "
-        f"yielding a distant profit of {distant_profit:.2f}. "
-        f"The profit improvement if transported is {profit_improvement:.2f}. "
-        f"The forecasted AQI is {forecasted_aqi:.2f}. "
-        f"Based on this, the recommended action is: {recommended_action}. "
-        f"Generate exactly 2 sentences of advice explicitly mentioning "
-        f"the recommended action, transport cost, and profit improvement. "
-        f"You must write this entire advisory strictly in the {request.language} language."
-    )
+    if request.intent == "price_check":
+        prompt = (
+            f"Act as an agricultural expert. A farmer is growing {request.crop} at coordinates "
+            f"({request.lat}, {request.lon}). "
+            f"The local market price is {request.current_price}. "
+            f"Generate an advisory focusing ONLY on the current market price. "
+            f"You must write this entire advisory strictly in the {request.language} language."
+        )
+    elif request.intent == "climate_check":
+        prompt = (
+            f"Act as an agricultural expert. A farmer is growing {request.crop} at coordinates "
+            f"({request.lat}, {request.lon}). "
+            f"The current temperature is {current_temp}°C with an AQI of {aqi_data.get('aqi')}. "
+            f"Generate an advisory focusing ONLY on the live weather data like Temperature and AQI. "
+            f"You must write this entire advisory strictly in the {request.language} language."
+        )
+    else:
+        prompt = (
+            f"Act as an agricultural expert. A farmer is growing {request.crop} at coordinates "
+            f"({request.lat}, {request.lon}) with an expected yield of {request.yield_amount}. "
+            f"The local market price is {request.current_price}, yielding a local revenue of {local_revenue:.2f}. "
+            f"The distant market price is {request.distant_market_price} with a transport cost of {request.transport_cost:.2f}, "
+            f"yielding a distant profit of {distant_profit:.2f}. "
+            f"The profit improvement if transported is {profit_improvement:.2f}. "
+            f"The forecasted AQI is {forecasted_aqi:.2f}. "
+            f"Based on this, the recommended action is: {recommended_action}. "
+            f"Generate exactly 2 sentences of advice explicitly mentioning "
+            f"the recommended action, transport cost, and profit improvement. "
+            f"You must write this entire advisory strictly in the {request.language} language."
+        )
 
     try:
         response = await featherless_client.chat.completions.create(
