@@ -59,7 +59,6 @@ class PredictionRequest(BaseModel):
     yield_amount: float
     current_price: float
     distant_market_price: float
-    transport_cost: float
     language: str = "Tanglish"
     intent: str = "full_advice"
 
@@ -115,7 +114,7 @@ async def predict(request: PredictionRequest):
     
     # Advanced Profit Comparison
     local_revenue = request.current_price * request.yield_amount
-    distant_profit = (request.distant_market_price * request.yield_amount) - request.transport_cost
+    distant_profit = request.distant_market_price * request.yield_amount
     
     profit_improvement = distant_profit - local_revenue
     
@@ -155,13 +154,13 @@ async def predict(request: PredictionRequest):
         prompt = (
             f"Act as an agricultural expert. A farmer is growing {request.crop} with an expected yield of {request.yield_amount}. "
             f"The local market price is {request.current_price}, yielding a local revenue of {local_revenue:.2f}. "
-            f"The distant market price is {request.distant_market_price} with a transport cost of {request.transport_cost:.2f}, "
+            f"The distant market price is {request.distant_market_price}, "
             f"yielding a distant profit of {distant_profit:.2f}. "
             f"The profit improvement if transported is {profit_improvement:.2f}. "
             f"The forecasted AQI is {forecasted_aqi:.2f}. "
             f"Based on this, the recommended action is: {recommended_action}. "
             f"Generate exactly 2 sentences of advice explicitly mentioning "
-            f"the recommended action, transport cost, and profit improvement. "
+            f"the recommended action and profit improvement. "
             f"You must write this entire advisory strictly in the {request.language} language.\n\n"
             f"CRITICAL ADVISORY FORMATTING:\n"
             f"- Keep the advice extremely short, punchy, and highly actionable.\n"

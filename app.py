@@ -13,6 +13,27 @@ import re
 
 st.set_page_config(page_title="AgroCast Voice Assistant", layout="centered")
 
+st.markdown("""
+<style>
+/* Main background: Very subtle earthy off-white */
+.stApp {
+    background-color: #FBFDF7; 
+}
+/* Button styling: Deep leaf green */
+.stButton>button {
+    background-color: #2E7D32 !important;
+    color: white !important;
+    font-weight: bold;
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.stButton>button:hover {
+    background-color: #1B5E20 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 LANG_CODES = {'Tamil': 'ta', 'Hindi': 'hi', 'Malayalam': 'ml', 'Telugu': 'te'}
 
 def clean_text_for_speech(text):
@@ -34,7 +55,8 @@ def get_openai_client():
 
 client = get_openai_client()
 
-st.title("AgroCast Voice Assistant")
+st.markdown("<h1 style='text-align: center; color: #2E7D32;'>🌱 AgroCast AI</h1>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center; color: #5D4037;'>Smart Market & Climate Advisory</h4>", unsafe_allow_html=True)
 
 # Center the single audio recorder widget
 if 'target_lang' not in st.session_state:
@@ -73,13 +95,14 @@ if audio_bytes:
                 f"You are a Strict Data Extractor. Analyze the user's voice text and output ONLY a JSON.\n\n"
                 f"The user has selected {st.session_state.target_lang}. You MUST output the \"advisory\" text strictly using the {st.session_state.target_lang} script. Do not use English or Tanglish.\n\n"
                 "Identify the intent:\n"
+                "- If the user asks about politics, movies, or anything NOT related to farming, crops, weather, or market prices, strictly set the intent to 'off_topic'.\n"
                 "- If the user asks about price, intent = 'price_check'.\n"
                 "- If they ask about weather/climate, intent = 'climate_check'.\n"
                 "- If they ask about selling/market, intent = 'full_advice'.\n\n"
                 "Extract the crop and any numbers mentioned.\n\n"
                 "Validation: Ensure the AI always outputs numbers. If a user asks for 'Price' but doesn't mention a crop, look at the previous context or default to 'Tomato'. If it can't find a number in the speech, it must use these defaults: "
-                "yield_amount: 2500, current_price: 40, distant_market_price: 55, transport_cost: 15000.\n\n"
-                "Output JSON keys: intent, language, crop, yield_amount, current_price, distant_market_price, transport_cost."
+                "yield_amount: 2500, current_price: 40, distant_market_price: 55.\n\n"
+                "Output JSON keys: intent, language, crop, yield_amount, current_price, distant_market_price."
             )
             
             response = client.chat.completions.create(
@@ -99,36 +122,59 @@ if audio_bytes:
                 
             payload = json.loads(extraction_str)
             
-            # Send payload to backend
-            API_URL = "https://agrocast-backend.onrender.com/predict"
-            time.sleep(2.5)  # Wait for the Featherless AI concurrency limit to safely clear
-            api_response = requests.post(API_URL, json=payload)
-            
-            if api_response.status_code == 200:
-                data = api_response.json()
+            if payload.get("intent") == "off_topic":
+                rejection_messages = {
+                    'Tamil': 'மன்னிக்கவும், நான் விவசாய கேள்விகளுக்கு மட்டுமே பதிலளிக்க முடியும்.',
+                    'Hindi': 'क्षमा करें, मैं केवल कृषि संबंधी प्रश्नों में सहायता कर सकता हूँ।',
+                    'Malayalam': 'ക്ഷമിക്കണം, എനിക്ക് കാർഷിക ചോദ്യങ്ങളെ മാത്രമേ സഹായിക്കാൻ കഴിയൂ.',
+                    'Telugu': 'క్షమించండి, నేను వ్యవసాయ ప్రశ్నలకు మాత్రమే సహాయం చేయగలను.',
+                    'English': 'I can only assist with agricultural questions.'
+                }
+                advisory_text = rejection_messages.get(st.session_state.target_lang, "I can only assist with agricultural questions.")
+                st.warning(advisory_text)
                 
-                # Display output
-                advisory_text = data.get("advisory", "No advice generated.")
-                st.success(advisory_text)
-                
-                with st.expander("Technical Logs (Model Verification)"):
-                    st.write("**Payload sent to Backend:**")
-                    st.json(payload)
-                    st.write("**Raw profit_improvement from PKL model:**", data.get("forecasts", {}).get("profit_improvement"))
-                
-                # Generate Audio via gTTS
-                lang_code = LANG_CODES.get(st.session_state.target_lang, 'hi')
-                cleaned_advisory = clean_text_for_speech(advisory_text)
-                tts = gTTS(text=cleaned_advisory, lang=lang_code)
+                lang_codes = {'Hindi': 'hi', 'Tamil': 'ta', 'Malayalam': 'ml', 'Telugu': 'te', 'English': 'en'}
+                current_code = lang_codes.get(st.session_state.target_lang, 'en')
+                clean_text = advisory_text.replace('*', '').replace('#', '')
+                tts = gTTS(text=clean_text, lang=current_code, slow=False)
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
                 tts.save(temp_file.name)
-                
-                # Playback
                 time.sleep(1)
                 st.audio(temp_file.name, format="audio/mp3", autoplay=True)
                 
             else:
-                st.error(f"Backend Error: {api_response.status_code} - {api_response.text}")
+                # Send payload to backend
+                API_URL = "https://agrocast-backend.onrender.com/predict"
+                time.sleep(2.5)  # Wait for the Featherless AI concurrency limit to safely clear
+                api_response = requests.post(API_URL, json=payload)
+                
+                if api_response.status_code == 200:
+                    data = api_response.json()
+                    
+                    # Display output
+                    advisory_text = data.get("advisory", "No advice generated.")
+                    st.success(advisory_text)
+                    
+                    with st.expander("Technical Logs (Model Verification)"):
+                        st.write("**Payload sent to Backend:**")
+                        st.json(payload)
+                        st.write("**Raw profit_improvement from PKL model:**", data.get("forecasts", {}).get("profit_improvement"))
+                    
+                    # Generate Audio via gTTS
+                    cleaned_advisory = clean_text_for_speech(advisory_text)
+                    lang_codes = {'Hindi': 'hi', 'Tamil': 'ta', 'Malayalam': 'ml', 'Telugu': 'te', 'English': 'en'}
+                    current_code = lang_codes.get(st.session_state.target_lang, 'en')
+                    clean_text = cleaned_advisory.replace('*', '').replace('#', '')
+                    tts = gTTS(text=clean_text, lang=current_code, slow=False)
+                    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
+                    tts.save(temp_file.name)
+                    
+                    # Playback
+                    time.sleep(1)
+                    st.audio(temp_file.name, format="audio/mp3", autoplay=True)
+                    
+                else:
+                    st.error(f"Backend Error: {api_response.status_code} - {api_response.text}")
 
     except sr.UnknownValueError:
         st.error("Speech Recognition could not understand the audio.")
