@@ -119,7 +119,7 @@ async def predict(request: PredictionRequest):
         f"Based on this, the recommended action is: {recommended_action}. "
         f"Generate exactly 2 sentences of advice explicitly mentioning "
         f"the recommended action, transport cost, and profit improvement. "
-        f"Write this advisory strictly in {request.language}."
+        f"You must write this entire advisory strictly in the {request.language} language."
     )
 
     try:
