@@ -129,14 +129,26 @@ async def predict(request: PredictionRequest):
             f"Act as an agricultural expert. A farmer is growing {request.crop}. "
             f"The local market price is {request.current_price}. "
             f"Generate an advisory focusing ONLY on the current market price. "
-            f"You must write this entire advisory strictly in the {request.language} language."
+            f"You must write this entire advisory strictly in the {request.language} language.\n\n"
+            f"CRITICAL ADVISORY FORMATTING:\n"
+            f"- Keep the advice extremely short, punchy, and highly actionable.\n"
+            f"- Provide EXACTLY two short bullet points. Do not write a 3rd point.\n"
+            f"- Bullet 1 (The Data): State the current market reality.\n"
+            f"- Bullet 2 (The Action): Give a direct, no-nonsense recommendation based on the data.\n"
+            f"- Strict Completion: Ensure every sentence ends cleanly with a full stop/period. Do not leave hanging sentences."
         )
     elif request.intent == "climate_check":
         prompt = (
             f"Act as an agricultural expert. A farmer is growing {request.crop}. "
             f"The current temperature is {current_temp}°C with an AQI of {aqi_data.get('aqi')}. "
             f"Generate an advisory focusing ONLY on the live weather data like Temperature and AQI. "
-            f"You must write this entire advisory strictly in the {request.language} language."
+            f"You must write this entire advisory strictly in the {request.language} language.\n\n"
+            f"CRITICAL ADVISORY FORMATTING:\n"
+            f"- Keep the advice extremely short, punchy, and highly actionable.\n"
+            f"- Provide EXACTLY two short bullet points. Do not write a 3rd point.\n"
+            f"- Bullet 1 (The Data): State the current weather reality.\n"
+            f"- Bullet 2 (The Action): Give a direct, no-nonsense recommendation based on the data.\n"
+            f"- Strict Completion: Ensure every sentence ends cleanly with a full stop/period. Do not leave hanging sentences."
         )
     else:
         prompt = (
@@ -149,7 +161,13 @@ async def predict(request: PredictionRequest):
             f"Based on this, the recommended action is: {recommended_action}. "
             f"Generate exactly 2 sentences of advice explicitly mentioning "
             f"the recommended action, transport cost, and profit improvement. "
-            f"You must write this entire advisory strictly in the {request.language} language."
+            f"You must write this entire advisory strictly in the {request.language} language.\n\n"
+            f"CRITICAL ADVISORY FORMATTING:\n"
+            f"- Keep the advice extremely short, punchy, and highly actionable.\n"
+            f"- Provide EXACTLY two short bullet points. Do not write a 3rd point.\n"
+            f"- Bullet 1 (The Data): State the current market data and profit improvement.\n"
+            f"- Bullet 2 (The Action): Give a direct, no-nonsense recommendation based on the data.\n"
+            f"- Strict Completion: Ensure every sentence ends cleanly with a full stop/period. Do not leave hanging sentences."
         )
 
     try:
