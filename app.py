@@ -15,21 +15,43 @@ st.set_page_config(page_title="AgroCast Voice Assistant", layout="centered")
 
 st.markdown("""
 <style>
-/* Main background: Very subtle earthy off-white */
+/* Main background: Very dark forest/night soil */
 .stApp {
-    background-color: #FBFDF7; 
+    background-color: #121E14; 
 }
-/* Button styling: Deep leaf green */
+/* Global Text Clarity Fix: Force all standard text to high-contrast pale green/white */
+p, span, label, div {
+    color: #E8F5E9 !important; 
+}
+/* Button styling: Bright leaf green for high visibility */
 .stButton>button {
     background-color: #2E7D32 !important;
-    color: white !important;
+    color: #FFFFFF !important;
     font-weight: bold;
     border-radius: 8px;
-    border: none;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border: 1px solid #4CAF50;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
 }
 .stButton>button:hover {
-    background-color: #1B5E20 !important;
+    background-color: #4CAF50 !important;
+    color: #121E14 !important; /* Dark text on hover for contrast */
+}
+/* Headers: Bright pastel green so they pop in the dark */
+h1, h2, h3 {
+    color: #81C784 !important; 
+}
+/* Stylized Header overrides */
+.custom-header { text-align: center; color: #81C784; }
+.custom-subheader { text-align: center; color: #BCAAA4; } /* Light warm brown */
+/* Success/Notification boxes for dark mode */
+div[data-baseweb="notification"] {
+    background-color: #1B5E20 !important; /* Deep green card */
+    border-left: 5px solid #81C784; /* Bright green accent line */
+}
+/* Ensure text inside the success box is pure white */
+div[data-baseweb="notification"] p {
+    color: #FFFFFF !important;
+    font-size: 16px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -55,8 +77,8 @@ def get_openai_client():
 
 client = get_openai_client()
 
-st.markdown("<h1 style='text-align: center; color: #2E7D32;'>🌱 AgroCast AI</h1>", unsafe_allow_html=True)
-st.markdown("<h4 style='text-align: center; color: #5D4037;'>Smart Market & Climate Advisory</h4>", unsafe_allow_html=True)
+st.markdown("<h1 class='custom-header'>🌱 AgroCast AI</h1>", unsafe_allow_html=True)
+st.markdown("<h4 class='custom-subheader'>Smart Market & Climate Advisory</h4>", unsafe_allow_html=True)
 
 # Center the single audio recorder widget
 if 'target_lang' not in st.session_state:
