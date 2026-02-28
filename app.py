@@ -110,10 +110,50 @@ st.info(f"**Selected Language:** {current_native}")
 
 st.markdown("---")
 
+UI_TRANSLATIONS = {
+    "English": {
+        "instruction": "Click the microphone to record your question:",
+        "mic_label": "Click to record",
+        "processing": "Processing...",
+        "you_said": "You said:",
+        "select_lang": "### Select Language"
+    },
+    "Tamil": {
+        "instruction": "உங்கள் கேள்வியைப் பதிவு செய்ய மைக்ரோஃபோனைக் கிளிக் செய்யவும்:",
+        "mic_label": "பதிவு செய்ய கிளிக் செய்யவும்",
+        "processing": "செயலாக்கப்படுகிறது...",
+        "you_said": "நீங்கள் கூறியது:",
+        "select_lang": "### மொழியைத் தேர்ந்தெடுக்கவும்"
+    },
+    "Hindi": {
+        "instruction": "अपना प्रश्न रिकॉर्ड करने के लिए माइक्रोफ़ोन पर क्लिक करें:",
+        "mic_label": "रिकॉर्ड करने के लिए क्लिक करें",
+        "processing": "संसाधित किया जा रहा है...",
+        "you_said": "आपने कहा:",
+        "select_lang": "### भाषा चुनें"
+    },
+    "Malayalam": {
+        "instruction": "നിങ്ങളുടെ ചോദ്യം റെക്കോർഡുചെയ്യാൻ മൈക്രോഫോണിൽ ക്ലിക്കുചെയ്യുക:",
+        "mic_label": "റെക്കോർഡുചെയ്യാൻ ക്ലിക്കുചെയ്യുക",
+        "processing": "പ്രോസസ്സ് ചെയ്യുന്നു...",
+        "you_said": "നിങ്ങൾ പറഞ്ഞത്:",
+        "select_lang": "### ഭാഷ തിരഞ്ഞെടുക്കുക"
+    },
+    "Telugu": {
+        "instruction": "మీ ప్రశ్నను రికార్డ్ చేయడానికి మైక్రోఫోన్‌పై క్లిక్ చేయండి:",
+        "mic_label": "రికార్డ్ చేయడానికి క్లిక్ చేయండి",
+        "processing": "ప్రాసెస్ చేయబడుతోంది...",
+        "you_said": "మీరు చెప్పింది:",
+        "select_lang": "### భాషను ఎంచుకోండి"
+    }
+}
+
+ui_text = UI_TRANSLATIONS.get(st.session_state.target_lang, UI_TRANSLATIONS["English"])
+
 col_left, col_center, col_right = st.columns([1, 2, 1])
 with col_center:
-    st.write("Click the microphone to record your question:")
-    audio_bytes = audio_recorder()
+    st.write(ui_text["instruction"])
+    audio_bytes = audio_recorder(text=ui_text["mic_label"])
 
 if audio_bytes:
     with open("temp.wav", "wb") as f:
@@ -125,9 +165,9 @@ if audio_bytes:
             audio_data = recognizer.record(source)
             user_text = recognizer.recognize_google(audio_data)
             
-        st.info(f"**You said:** {user_text}")
+        st.info(f"**{ui_text['you_said']}** {user_text}")
         
-        with st.spinner('Processing...'):
+        with st.spinner(ui_text['processing']):
             # --- 1. INTENT GUARDRAIL (THE JUDGE) ---
             weather_keywords = ['mausam', 'weather', 'aqi', 'climate', 'temperature', 'humidity', 'rain', 'monsoon']
             is_weather = any(wk in user_text.lower() for wk in weather_keywords)
