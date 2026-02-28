@@ -91,12 +91,22 @@ if 'target_lang' not in st.session_state:
 
 st.write("### Select Language")
 lang_cols = st.columns(4)
-languages = ['Tamil', 'Hindi', 'Malayalam', 'Telugu']
-for i, lang in enumerate(languages):
-    if lang_cols[i].button(lang, use_container_width=True):
-        st.session_state.target_lang = lang
 
-st.info(f"**Selected Language:** {st.session_state.target_lang}")
+# Map native scripts to internal English values
+LANGUAGE_UI_MAP = {
+    'தமிழ்': 'Tamil',
+    'हिन्दी': 'Hindi',
+    'മലയാളം': 'Malayalam',
+    'తెలుగు': 'Telugu'
+}
+
+for i, (native_script, english_name) in enumerate(LANGUAGE_UI_MAP.items()):
+    if lang_cols[i].button(native_script, use_container_width=True):
+        st.session_state.target_lang = english_name
+
+# Display the selected language using its native script
+current_native = next((k for k, v in LANGUAGE_UI_MAP.items() if v == st.session_state.target_lang), st.session_state.target_lang)
+st.info(f"**Selected Language:** {current_native}")
 
 st.markdown("---")
 
