@@ -5,3 +5,5 @@ SpeechRecognition
 langdetect
 python-dotenv
 gTTS
+geopy
+pandas
