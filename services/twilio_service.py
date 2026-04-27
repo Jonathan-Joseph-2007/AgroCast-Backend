@@ -11,7 +11,7 @@ from gtts import gTTS
 # --- STRICT RULE: Isolated Import Logic ---
 # Importing ML models, DeepSeek AI client, and core prediction logic from main.py
 # This ensures zero modifications or breaking changes to the existing app.py or main.py.
-from main import (
+from api.main import (
     featherless_client, 
     FEATHERLESS_MODEL, 
     environmental_model, 
@@ -196,4 +196,4 @@ async def voice_process(request: Request, SpeechResult: str = Form(None), lang: 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("twilio_server:app_voice", host="0.0.0.0", port=8001, reload=True)
+    uvicorn.run("services.twilio_service:app_voice", host="0.0.0.0", port=8001, reload=True)

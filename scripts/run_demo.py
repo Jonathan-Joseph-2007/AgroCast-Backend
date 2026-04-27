@@ -9,7 +9,7 @@ def main():
     
     # Start the FastAPI server via uvicorn in a subprocess
     server_process = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "twilio_server:app_voice", "--host", "0.0.0.0", "--port", "8001", "--reload"],
+        [sys.executable, "-m", "uvicorn", "services.twilio_service:app_voice", "--host", "0.0.0.0", "--port", "8001", "--reload"],
         stdout=sys.stdout,
         stderr=sys.stderr
     )

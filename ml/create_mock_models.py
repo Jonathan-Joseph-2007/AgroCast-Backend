@@ -23,8 +23,9 @@ def create_mock_models():
     price_model.fit(X_price, y_price)
 
     # Save models
-    joblib.dump(env_model, "environmental_model.pkl")
-    joblib.dump(price_model, "price_model.pkl")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    joblib.dump(env_model, os.path.join(script_dir, "environmental_model.pkl"))
+    joblib.dump(price_model, os.path.join(script_dir, "price_model.pkl"))
     
     print("Successfully created environmental_model.pkl and price_model.pkl")
 

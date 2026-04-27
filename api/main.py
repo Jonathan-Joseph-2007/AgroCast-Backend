@@ -17,8 +17,8 @@ from typing import Optional
 from openai import AsyncOpenAI
 from elevenlabs.client import AsyncElevenLabs
 from elevenlabs import save
-from fetcher import get_live_weather, get_live_aqi
-from market_data import build_market_comparison, geocode_location
+from services.fetcher import get_live_weather, get_live_aqi
+from services.market_data import build_market_comparison, geocode_location
 
 app = FastAPI(title="AgroCast Pipeline API")
 
@@ -53,7 +53,7 @@ elevenlabs_client = AsyncElevenLabs(
 # Load ML Models cleanly at startup (environmental model still used for AQI forecasting)
 print("Loading ML models...")
 try:
-    environmental_model = joblib.load("environmental_model.pkl")
+    environmental_model = joblib.load(os.path.join(os.path.dirname(__file__), "..", "ml", "environmental_model.pkl"))
     print("Successfully loaded environmental_model.pkl")
 except FileNotFoundError as e:
     print(f"Warning: environmental_model.pkl not found. ({e})")
@@ -315,4 +315,4 @@ async def predict(request: PredictionRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=True)

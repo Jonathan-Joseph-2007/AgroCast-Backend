@@ -1,83 +1,62 @@
-# Environments
+# ═══════════════════════════════════════════════════
+# AgroCast — .gitignore
+# ═══════════════════════════════════════════════════
+
+# ─── Environment & Secrets ────────────────────────
 .env
+
+# ─── Python Virtual Environments ──────────────────
 .venv/
-env/
 venv/
+env/
 ENV/
 env.bak/
 venv.bak/
 
-# Byte-compiled / optimized / DLL files
+# ─── Byte-compiled / Optimized / DLL files ────────
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Generated Audio Files
+# ─── ML Model Artifacts ──────────────────────────
+ml/*.pkl
+
+# ─── Generated Audio Files ───────────────────────
 static/*.mp3
+twilio_static/*.mp3
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# ─── Cache & Temp Files ──────────────────────────
+geocoding_cache.json
+*.wav
+temp.wav
 
-# pytest
-.pytest_cache
+# ─── Jupyter Notebook ────────────────────────────
+.ipynb_checkpoints/
 
-# mypy
-.mypy_cache
+# ─── Testing ─────────────────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage
+
+# ─── Type Checkers ───────────────────────────────
+.mypy_cache/
 .dmypy.json
 dmypy.json
-
-# Pyre type checker
 .pyre/
 
-# PyCharm
+# ─── IDE Settings ────────────────────────────────
 .idea/
-
-# Environments
-.env
-.venv/
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Generated Audio Files
-static/*.mp3
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# pytest
-.pytest_cache
-
-# mypy
-.mypy_cache
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# PyCharm
-.idea/
-
-# VS Code
 .vscode/
+*.swp
+*.swo
+*~
 
-# macOS
+# ─── macOS ───────────────────────────────────────
 .DS_Store
+.AppleDouble
+.LSOverride
 
-# Logs
+# ─── Logs ────────────────────────────────────────
 logs/
 *.log
 *log*.txt
-
-# Cache and Temp Files
-geocoding_cache.json
-*.wav
-*.pkl
