@@ -2,11 +2,14 @@
   <h1 align="center">🌾 AgroCast AI</h1>
   <p align="center"><strong>Smart Mandi Price & Logistics Advisory for Indian Farmers</strong></p>
   <p align="center">
+    <em>Built at <strong>Aurelion Hackathon</strong> — Karunya University | 27 Feb 2026</em>
+  </p>
+  <p align="center">
     <a href="#features">Features</a> •
     <a href="#tech-stack">Tech Stack</a> •
+    <a href="#team--contributions">Team</a> •
     <a href="#setup">Setup</a> •
-    <a href="#architecture">Architecture</a> •
-    <a href="#license">License</a>
+    <a href="#architecture">Architecture</a>
   </p>
 </p>
 
@@ -30,6 +33,56 @@ AgroCast is an AI-driven agricultural market intelligence platform that empowers
 - 🌤️ **Live Weather & AQI** — Real-time environmental data via Open-Meteo
 - 📞 **Twilio IVR** — Phone-based voice access for farmers without smartphones
 - 📈 **Premium Dashboard** — Glassmorphism UI with market comparison cards
+
+---
+
+## Team & Contributions
+
+> 🏆 **Aurelion Hackathon** — Karunya University, 27 February 2026
+
+### 👤 Azriel Gershom Raj — *Full-Stack AI Pipeline Architect*
+> **Core Backend + AI Engine + Frontend Dashboard**
+
+| Area | Work Done |
+|------|-----------|
+| **FastAPI Backend** | Designed and built the entire `/predict` pipeline (`api/main.py`) — the central orchestrator that connects voice input → data extraction → market analysis → AI advisory → audio synthesis |
+| **Market Intelligence Engine** | Built the complete market data module (`services/market_data.py`) — live Government API integration, dual-pass geospatial sorting (Haversine + OSRM), transport cost estimation, net-profit comparison logic, and dynamic fallback data synthesizer |
+| **Bilingual AI Advisory** | Engineered the multi-intent LLM prompt system (price_check / climate_check / full_advice) that generates structured bilingual advisories in regional script + English using DeepSeek V3 |
+| **Streamlit Dashboard** | Built the complete premium frontend (`frontend/app.py`) — 800+ lines of glassmorphism UI with voice recording, market comparison cards, price bars, weather strip, translated data tables, and auto-playing TTS audio |
+| **Integration & Architecture** | Wired together all services end-to-end: voice → NLP entity extraction → market API → geospatial routing → LLM generation → speech synthesis → UI rendering |
+
+---
+
+### 👤 Jonathan Joseph — *Geospatial & Voice IVR Engineer*
+
+| Area | Work Done |
+|------|-----------|
+| **Twilio IVR Microservice** | Built the complete phone-based voice access system (`services/twilio_service.py`) — IVR call flow with language selection, speech-to-text capture, AI processing, and gTTS audio response back to the caller |
+| **Geocoding System** | Implemented the geocoding pipeline with persistent JSON caching (`GeocodingCache`), Nominatim API integration, and 40+ pre-cached Indian city coordinates for instant lookups |
+| **OSRM Routing Integration** | Integrated the Open Source Routing Machine API for real driving distance and duration calculations between farmer location and distant markets |
+| **Data Pipeline Setup** | Configured the Government of India data.gov.in API connection with multi-state market search and robust error handling |
+
+---
+
+### 👤 Preetham — *ML & Environmental Intelligence*
+
+| Area | Work Done |
+|------|-----------|
+| **ML Model Pipeline** | Built the environmental AQI forecasting model using scikit-learn (`ml/create_mock_models.py`) — Linear Regression trained on temperature, humidity, and precipitation features |
+| **Weather & AQI Services** | Developed the live data fetcher module (`services/fetcher.py`) — Open-Meteo API integration for real-time temperature, humidity, precipitation, and European AQI |
+| **Speech Recognition** | Implemented the voice input processing pipeline — audio recording, WAV file handling, Google Speech Recognition API integration, and multi-language transcription |
+| **Testing Suite** | Created API endpoint tests (`tests/test_api.py`) and TTS integration tests (`tests/test_tts.py`) to validate the prediction pipeline and ElevenLabs audio generation |
+
+---
+
+### 👤 Manas Deep — *UI Design & DevOps*
+
+| Area | Work Done |
+|------|-----------|
+| **UI/UX Design System** | Designed the complete CSS theme — dark agri-tech color palette, glassmorphism cards, gradient price bars, metric pills, best-market badges, pulse animations, and responsive layouts |
+| **Localization Layer** | Built the multi-language UI translation system (`UI_TRANSLATIONS`) — native script button labels, localized table headers, and dynamic language switching across Tamil, Hindi, Malayalam, and Telugu |
+| **Deployment Configuration** | Set up Docker containerization (`Dockerfile`), Heroku/Render deployment (`Procfile`), Streamlit cloud config (`scripts/setup.sh`), and the multi-service launcher (`scripts/run_all.ps1`) |
+| **Documentation** | Authored the project technical report (`docs/project_report.md`) covering architecture, module descriptions, and the full technology stack |
 
 ---
 
@@ -195,5 +248,5 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 ---
 
 <p align="center">
-  <sub>Built with ❤️ for Indian Farmers</sub>
+  <sub>Built with ❤️ for Indian Farmers at <strong>Aurelion Hackathon 2026</strong> — Karunya University</sub>
 </p>
