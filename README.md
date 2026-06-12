@@ -36,55 +36,90 @@ AgroCast is an AI-driven agricultural market intelligence platform that empowers
 
 ---
 
-## Team & Contributions
-
-> 🏆 **Aurelion Hackathon** — Karunya University, 27 February 2026
-
-### 👤 Azriel Gershom Raj — *Full-Stack AI Pipeline Architect*
-> **Core Backend + AI Engine + Frontend Dashboard**
-
-| Area | Work Done |
-|------|-----------|
-| **FastAPI Backend** | Designed and built the entire `/predict` pipeline (`api/main.py`) — the central orchestrator that connects voice input → data extraction → market analysis → AI advisory → audio synthesis |
-| **Market Intelligence Engine** | Built the complete market data module (`services/market_data.py`) — live Government API integration, dual-pass geospatial sorting (Haversine + OSRM), transport cost estimation, net-profit comparison logic, and dynamic fallback data synthesizer |
-| **Bilingual AI Advisory** | Engineered the multi-intent LLM prompt system (price_check / climate_check / full_advice) that generates structured bilingual advisories in regional script + English using DeepSeek V3 |
-| **Streamlit Dashboard** | Built the complete premium frontend (`frontend/app.py`) — 800+ lines of glassmorphism UI with voice recording, market comparison cards, price bars, weather strip, translated data tables, and auto-playing TTS audio |
-| **Integration & Architecture** | Wired together all services end-to-end: voice → NLP entity extraction → market API → geospatial routing → LLM generation → speech synthesis → UI rendering |
+# 🏆 Aurelion Hackathon — Karunya University
+**Date:** 27 February 2026
+**Project:** AI-Powered Multilingual Farmer Market Advisory Platform
 
 ---
 
-### 👤 Jonathan Joseph — *Geospatial & Voice IVR Engineer*
+## 👤 Jonathan Joseph — *Backend Development Engineer*
+> Core Area: FastAPI Backend, API Orchestration & Service Integration
 
 | Area | Work Done |
 |------|-----------|
-| **Twilio IVR Microservice** | Built the complete phone-based voice access system (`services/twilio_service.py`) — IVR call flow with language selection, speech-to-text capture, AI processing, and gTTS audio response back to the caller |
-| **Geocoding System** | Implemented the geocoding pipeline with persistent JSON caching (`GeocodingCache`), Nominatim API integration, and 40+ pre-cached Indian city coordinates for instant lookups |
-| **OSRM Routing Integration** | Integrated the Open Source Routing Machine API for real driving distance and duration calculations between farmer location and distant markets |
-| **Data Pipeline Setup** | Configured the Government of India data.gov.in API connection with multi-state market search and robust error handling |
+| **FastAPI Backend** | Developed the backend application using FastAPI with modular API routing, request handling, and structured response generation. |
+| **Prediction Pipeline** | Implemented the `/predict` endpoint to process crop name, farmer location, language preference, and advisory type. |
+| **API Orchestration** | Connected multiple backend services including market data, weather data, AI advisory, geospatial routing, and audio response modules. |
+| **Request Validation** | Added validation logic for user inputs, missing fields, invalid locations, unsupported languages, and incorrect query formats. |
+| **Service Layer Integration** | Integrated service modules using clean backend flow between controller, processing layer, and response layer. |
+| **JSON Response Design** | Structured API responses with market comparison data, weather metrics, AQI values, AI advisory text, and audio output path. |
+| **Error Handling** | Implemented exception handling for API failures, empty data responses, routing errors, and backend processing issues. |
+| **Backend Debugging** | Performed API debugging and endpoint testing to ensure stable communication between frontend and backend modules. |
 
 ---
 
-### 👤 Preetham — *ML & Environmental Intelligence*
+## 👤 Azriel Gershom Raj — *LLM, ML & AI Advisory Architect*
+> Core Area: LLM Integration, ML Model Creation & Intelligent Advisory System
 
 | Area | Work Done |
 |------|-----------|
-| **ML Model Pipeline** | Built the environmental AQI forecasting model using scikit-learn (`ml/create_mock_models.py`) — Linear Regression trained on temperature, humidity, and precipitation features |
-| **Weather & AQI Services** | Developed the live data fetcher module (`services/fetcher.py`) — Open-Meteo API integration for real-time temperature, humidity, precipitation, and European AQI |
-| **Speech Recognition** | Implemented the voice input processing pipeline — audio recording, WAV file handling, Google Speech Recognition API integration, and multi-language transcription |
-| **Testing Suite** | Created API endpoint tests (`tests/test_api.py`) and TTS integration tests (`tests/test_tts.py`) to validate the prediction pipeline and ElevenLabs audio generation |
+| **LLM Integration** | Integrated DeepSeek V3 into the AI advisory workflow for generating intelligent farmer-focused recommendations. |
+| **Prompt Engineering** | Designed structured prompts for multiple advisory intents such as price_check, climate_check, and full_advice. |
+| **AI Advisory Engine** | Built the advisory logic that combines crop details, market prices, weather conditions, AQI data, and farmer query intent. |
+| **ML Model Creation** | Developed the machine learning pipeline for environmental intelligence using scikit-learn-based model creation. |
+| **Feature Engineering** | Used weather-related features such as temperature, humidity, precipitation, and AQI values for prediction support. |
+| **Bilingual Advisory** | Generated advisory outputs in regional language script along with English translation for better farmer accessibility. |
+| **Response Structuring** | Formatted AI responses into clear sections including best market suggestion, price insight, climate alert, and final recommendation. |
+| **Output Optimization** | Refined LLM responses to improve relevance, clarity, consistency, and practical usefulness for farmers. |
 
 ---
 
-### 👤 Manas Deep — *UI Design & DevOps*
+## 👤 Preetham — *Frontend & UI Experience Engineer*
+> Core Area: Streamlit Dashboard, UI/UX Design & Farmer Interaction Interface
 
 | Area | Work Done |
 |------|-----------|
-| **UI/UX Design System** | Designed the complete CSS theme — dark agri-tech color palette, glassmorphism cards, gradient price bars, metric pills, best-market badges, pulse animations, and responsive layouts |
-| **Localization Layer** | Built the multi-language UI translation system (`UI_TRANSLATIONS`) — native script button labels, localized table headers, and dynamic language switching across Tamil, Hindi, Malayalam, and Telugu |
-| **Deployment Configuration** | Set up Docker containerization (`Dockerfile`), Heroku/Render deployment (`Procfile`), Streamlit cloud config (`scripts/setup.sh`), and the multi-service launcher (`scripts/run_all.ps1`) |
-| **Documentation** | Authored the project technical report (`docs/project_report.md`) covering architecture, module descriptions, and the full technology stack |
+| **Streamlit Dashboard** | Built the frontend dashboard using Streamlit for crop input, location selection, language selection, and advisory display. |
+| **UI Layout** | Designed a clean dashboard layout with input panels, result sections, market comparison cards, and advisory containers. |
+| **Market Visualization** | Created frontend components for displaying price comparison, best-market badges, market cards, and profit-related insights. |
+| **Weather Display** | Added UI sections for temperature, humidity, rainfall, AQI indicators, and climate-related advisory information. |
+| **Voice Interface UI** | Implemented frontend support for voice recording, speech input display, and audio response playback. |
+| **Multilingual UI** | Added localized UI text, regional language labels, translated table headers, and dynamic language-based display. |
+| **Visual Styling** | Designed glassmorphism cards, dark agri-tech theme, gradient elements, metric pills, animations, and responsive styling. |
+| **User Experience** | Improved the dashboard flow to make the system simple, readable, and suitable for farmer-friendly interaction. |
 
 ---
+
+## 👤 Manas Deep — *Dataset, Testing & Deployment Engineer*
+> Core Area: Dataset Management, Quality Testing & Deployment Configuration
+
+| Area | Work Done |
+|------|-----------|
+| **Dataset Collection** | Collected and organized crop, market, weather, and environmental data required for project functionality. |
+| **Data Preprocessing** | Cleaned, formatted, and structured datasets for backend processing, frontend display, and ML model usage. |
+| **Fallback Data System** | Prepared fallback data to maintain system output when live APIs return incomplete or unavailable responses. |
+| **API Testing** | Tested backend endpoints with different crops, locations, languages, and advisory types to verify response accuracy. |
+| **Integration Testing** | Validated the complete system flow from frontend input to backend processing, AI advisory generation, and final UI rendering. |
+| **TTS Testing** | Tested text-to-speech output generation and audio playback integration for voice-based advisory delivery. |
+| **Deployment Setup** | Configured Dockerfile, Procfile, setup scripts, environment variables, and project launch commands. |
+| **Documentation** | Prepared technical documentation covering dataset usage, testing process, deployment steps, and system workflow. |
+
+---
+
+## Team Contribution Summary
+
+| Team Member | Technical Responsibility |
+|-------------|--------------------------|
+| Jonathan Joseph | Backend Development, FastAPI, API Orchestration, Service Integration |
+| Azriel Gershom Raj | LLM Integration, ML Model Creation, Prompt Engineering, AI Advisory |
+| Preetham | Streamlit Frontend, UI/UX Design, Visualization, Multilingual Interface |
+| Manas Deep | Dataset Management, Testing, Deployment, Documentation |
+
+---
+
+## Final Project Statement
+
+The team developed an AI-powered multilingual farmer market advisory platform that combines backend APIs, machine learning, LLM-based advisory generation, market price analysis, weather intelligence, voice interaction, multilingual UI, testing, and deployment support. The system helps farmers receive market and climate-based recommendations through a simple dashboard and voice-enabled interface.
 
 ## Tech Stack
 
